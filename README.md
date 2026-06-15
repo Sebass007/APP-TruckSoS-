@@ -2,48 +2,50 @@
 
 Aplicación de auxilio mecánico en tiempo real con flujo de negociación tipo inDrive.
 
-## 🚀 Guía para el Equipo
+## 🚀 Guía de Configuración para el Equipo
 
-Para que la aplicación funcione en tu computadora, sigue estos pasos:
+Para que la aplicación compile y funcione correctamente en cualquier máquina, sigue estos pasos:
 
-### 1. Clonar y Configurar
-1. Clona el repositorio.
-2. Abre la carpeta `mecanico-aqp` en VS Code.
-3. Instala las dependencias:
-   ```bash
-   npm install
-   ```
+### 1. Requisitos Previos
+*   **Node.js:** Versión 18 o superior.
+*   **Android Studio:** Con el SDK de Android (mínimo API 24).
+*   **Java JDK:** Versión 21 (Requerido por las últimas versiones de Android y Gradle).
 
-### 2. Variables de Entorno (IMPORTANTE)
-El archivo `.env.local` está ignorado por seguridad. Debes crearlo en la raíz de `mecanico-aqp` con las credenciales de Supabase que compartimos por el grupo:
-```env
-NEXT_PUBLIC_SUPABASE_URL=tu_url_aqui
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_key_aqui
-```
+### 2. Instalación y Configuración Inicial
+1.  Clona el repositorio.
+2.  Instala las dependencias de Node:
+    ```powershell
+    npm install
+    ```
 
-### 3. Ejecutar en Web (Desarrollo)
-```bash
-npm run dev
-```
-Abre [http://localhost:3000](http://localhost:3000).
+### 3. Variables de Entorno (CRÍTICO) 🔑
+El archivo `.env.local` contiene las llaves de acceso a la base de datos y **no se sube al repositorio**.
+1.  Copia el archivo de ejemplo:
+    ```powershell
+    cp .env.local.example .env.local
+    ```
+2.  Abre `.env.local` y reemplaza los valores con las credenciales de nuestro proyecto en Supabase (solicítalas si no las tienes).
 
-### 4. Ejecutar en Android (Emulador/Físico)
-Si quieres ver los cambios en Android Studio:
-1. Genera el build:
-   ```bash
-   npm run build
-   ```
-2. Sincroniza con Capacitor:
-   ```bash
-   npx cap sync android
-   ```
-3. Abre Android Studio y dale a **Run**.
+### 4. Configuración de Android Studio 📱
+Hemos actualizado el proyecto para soportar Kotlin y las últimas versiones de los plugins de mapas.
+1.  Abre la carpeta `android` con **Android Studio**.
+2.  Espera a que termine el "Gradle Sync". Si te pide instalar el **JDK 21**, acepta la instalación.
+3.  Si ves errores de paquetes o plugins, ejecuta en tu terminal:
+    ```powershell
+    npx cap sync android
+    ```
 
-## 🛠️ Tecnologías
-- **Frontend:** Next.js (App Router), Tailwind CSS, Lucide React.
-- **Backend/Base de Datos:** Supabase (Auth, DB, Realtime).
-- **Móvil:** Capacitor.js.
-- **Mapas:** Leaflet / OpenStreetMap.
+### 5. Flujo de Trabajo (Web -> Android)
+Para ver tus cambios reflejados en el celular o emulador:
+1.  Compila la web:
+    ```powershell
+    npm run static
+    ```
+2.  Sincroniza con el proyecto Android:
+    ```powershell
+    npx cap sync android
+    ```
+3.  En Android Studio, presiona el botón **Run** (Play verde).
 
 ---
-**Nota:** Cada vez que hagas cambios grandes en el diseño web y quieras verlos en el emulador de Android, recuerda correr `npm run build` y `npx cap sync android`.
+**Nota sobre Google Maps:** Para que el mapa funcione en el celular, asegúrate de que el archivo `android/app/src/main/AndroidManifest.xml` tenga una API KEY válida en la sección `com.google.android.geo.API_KEY`.
