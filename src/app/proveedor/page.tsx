@@ -244,8 +244,6 @@ export default function ProveedorDashboard() {
     if (!monto) return;
 
     try {
-      // Para enviar una oferta estilo InDrive, primero "aceptamos" o enviamos un mensaje de oferta
-      // En este flujo, simplemente enviamos el mensaje de oferta
       const { error: msgError } = await supabase
         .from('mensajes')
         .insert({
