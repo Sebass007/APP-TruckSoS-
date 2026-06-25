@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { Truck, MapPin, Send, Disc, Zap, Activity, Battery, Wrench, HelpCircle, Clock, LogOut, AlertCircle, MessageSquare, Check, X, Menu, ChevronUp, Star, Navigation, CheckCircle2 } from 'lucide-react';
+import { Truck, MapPin, Send, Disc, Zap, Activity, Battery, Wrench, HelpCircle, Clock, LogOut, AlertCircle, MessageSquare, Check, X, Menu, ChevronUp, Star, Navigation, CheckCircle2, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import ChatBox from '@/components/ChatBox';
+import AsistenteIA from '@/components/AsistenteIA';
 
 import { DashboardSkeleton } from '@/components/Skeleton';
 
@@ -40,6 +41,7 @@ export default function ClienteDashboard() {
   // UI State
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bottomSheetStep, setBottomSheetStep] = useState<'selection' | 'form' | 'status'>('selection');
+  const [aiOpen, setAiOpen] = useState(false);
 
   // Form State
   const [tipoVehiculo, setTipoVehiculo] = useState('camion');
@@ -198,6 +200,13 @@ export default function ClienteDashboard() {
     router.push('/login');
   };
 
+  const aplicarRecomendacionIA = (categoria: string, texto: string) => {
+    setSelectedService(categoria);
+    setDescripcion(texto);
+    setAiOpen(false);
+    setBottomSheetStep('form');
+  };
+
   if (loading) return <DashboardSkeleton />;
 
   const activeSolicitud = solicitudes.find(s => ['pendiente', 'aceptada', 'en_camino', 'en_sitio'].includes(s.estado));
@@ -250,6 +259,15 @@ export default function ClienteDashboard() {
           className="absolute top-6 left-6 z-[2000] p-4 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl text-white"
         >
           <Menu className="w-6 h-6" />
+        </button>
+
+        {/* Floating AI Assistant Button */}
+        <button 
+          onClick={() => setAiOpen(true)}
+          className="absolute top-6 right-6 z-[2000] p-4 bg-gradient-to-r from-orange-600 to-amber-600 border border-orange-500/20 rounded-2xl shadow-2xl text-white flex items-center gap-2 hover:scale-105 hover:shadow-orange-600/30 transition-all font-black text-xs italic uppercase tracking-wider"
+        >
+          <Sparkles className="w-4 h-4 text-white animate-pulse" />
+          <span>Asistente IA</span>
         </button>
 
         <Mapa 
@@ -336,12 +354,24 @@ export default function ClienteDashboard() {
                     </div>
                   </div>
 
-                  <textarea 
-                    placeholder="Describe el problema brevemente..."
-                    value={descripcion}
-                    onChange={(e) => setDescripcion(e.target.value)}
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-sm font-medium focus:border-orange-500 outline-none min-h-[100px]"
-                  />
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-[10px] font-black text-neutral-500 uppercase italic">Problema</label>
+                      <button 
+                        type="button"
+                        onClick={() => setAiOpen(true)}
+                        className="text-[9px] bg-orange-600/10 text-orange-400 border border-orange-500/20 px-2.5 py-1 rounded-lg font-black uppercase italic tracking-wider flex items-center gap-1 hover:bg-orange-600/20 transition-all cursor-pointer"
+                      >
+                        <Sparkles className="w-3 h-3 text-orange-500 animate-pulse" /> Recomendar con IA
+                      </button>
+                    </div>
+                    <textarea 
+                      placeholder="Describe el problema brevemente..."
+                      value={descripcion}
+                      onChange={(e) => setDescripcion(e.target.value)}
+                      className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-sm font-medium focus:border-orange-500 outline-none min-h-[100px]"
+                    />
+                  </div>
 
                   <button 
                     onClick={handleSubmit}
@@ -421,6 +451,18 @@ export default function ClienteDashboard() {
       </div>
 
       {/* Modals & Overlays */}
+      {aiOpen && (
+        <div className="fixed inset-0 bg-black/60 z-[4500] backdrop-blur-sm flex items-end justify-center sm:p-6 animate-in fade-in">
+          <div className="bg-neutral-900 w-full max-w-lg h-[90vh] sm:rounded-3xl shadow-2xl relative overflow-hidden flex flex-col">
+            <AsistenteIA 
+              onClose={() => setAiOpen(false)}
+              onApplyRecommendation={aplicarRecomendacionIA}
+              tipoVehiculoActual={tipoVehiculo}
+            />
+          </div>
+        </div>
+      )}
+
       {chatSolicitudId && (
         <div className="fixed inset-0 z-[4000] flex items-end justify-center sm:p-6">
           <div className="bg-neutral-900 w-full max-w-lg h-[90vh] sm:rounded-3xl shadow-2xl relative overflow-hidden flex flex-col">
