@@ -3,118 +3,215 @@
 import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { Truck, Star, Bell, Check, X, Navigation, LogOut, AlertCircle, Clock, MessageSquare, MapPin } from 'lucide-react';
+import { Truck, MapPin, Check, MessageSquare, AlertCircle, Phone, Clock, LogOut, Navigation, Star, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import ChatBox from '@/components/ChatBox';
-
 import { DashboardSkeleton } from '@/components/Skeleton';
 
 const Mapa = dynamic(() => import('@/components/Mapa'), { 
   ssr: false,
-  loading: () => <div className="h-full w-full bg-neutral-900 animate-pulse rounded-2xl" />
+  loading: () => <div className="h-full w-full bg-neutral-900 animate-pulse" />
 });
 
-// Componente interno para el contenido del radar (compartido entre desktop y mobile)
+// Haversine formula to calculate exact distance in kilometers
+function getHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// Componente interno para el contenido del radar
 const RadarContent = ({ 
   radarActivo, 
   solicitudes, 
+  solicitudesActivas,
   montoOfertaRapida, 
   setMontoOfertaRapida, 
   enviarOfertaRapida, 
   handleAction,
-  getDistance,
-  getTime
+  getRealDistance,
+  getRealTime,
+  setChatSolicitudId,
+  acceptedDirectIds
 }: any) => (
   <>
+    {/* Sección de Trabajos Activos en Curso */}
+    {solicitudesActivas && solicitudesActivas.length > 0 && (
+      <div className="mb-8 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[10px] font-black text-green-400 uppercase tracking-[0.3em] italic flex items-center gap-1.5">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-ping"></span> Auxilio en Curso ({solicitudesActivas.length})
+          </h3>
+        </div>
+
+        {solicitudesActivas.map((sol: any) => (
+          <div key={sol.id} className="bg-gradient-to-br from-green-950/40 to-neutral-950 p-5 rounded-3xl border-2 border-green-500/50 shadow-2xl space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[9px] font-black uppercase tracking-wider text-green-400 bg-green-500/10 px-2 py-0.5 rounded-md border border-green-500/20">
+                  {sol.tipo_servicio}
+                </span>
+                <h4 className="font-black italic text-sm uppercase text-white mt-1">
+                  {sol.usuarios?.nombre || 'Cliente Auxiliado'}
+                </h4>
+              </div>
+              <span className="text-sm font-black text-green-400 italic">S/ {sol.monto_pactado || 'Acordado'}</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-neutral-900">
+              <button 
+                onClick={() => setChatSolicitudId(sol.id)}
+                className="bg-neutral-800 hover:bg-neutral-750 text-white py-3 rounded-xl font-black text-[10px] transition-all flex items-center justify-center gap-1.5 uppercase italic border border-neutral-700"
+              >
+                <MessageSquare className="w-4 h-4 text-orange-500" /> Negociar / Chat
+              </button>
+              <button 
+                onClick={() => handleAction(sol.id, 'completada')}
+                className="bg-green-600 hover:bg-green-500 text-white py-3 rounded-xl font-black text-[10px] transition-all flex items-center justify-center gap-1.5 uppercase italic shadow-lg shadow-green-600/20"
+              >
+                <CheckCircle2 className="w-4 h-4" /> TRABAJO TERMINADO ✔️
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
     <div className="flex items-center justify-between mb-6">
       <h3 className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.3em] italic">Radar de Emergencias</h3>
       {radarActivo && (
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></div>
-          <span className="text-[8px] font-black text-green-500 uppercase italic">Buscando...</span>
+          <span className="text-[8px] font-black text-green-500 uppercase italic">Escaneando GPS...</span>
         </div>
       )}
     </div>
 
     <div className="relative flex-1">
       {!radarActivo && (
-        <div className="absolute inset-0 z-10 bg-neutral-900/80 backdrop-blur-[2px] rounded-3xl flex flex-col items-center justify-center p-8 text-center border border-neutral-800">
-          <div className="w-16 h-16 bg-neutral-800 rounded-full flex items-center justify-center mb-4">
-            <AlertCircle className="w-8 h-8 text-neutral-600" />
+        <div className="absolute inset-0 z-10 bg-neutral-900/90 backdrop-blur-[2px] rounded-3xl flex flex-col items-center justify-center p-8 text-center border border-neutral-800">
+          <div className="w-16 h-16 bg-neutral-800 rounded-full flex items-center justify-center mb-4 border border-neutral-700">
+            <AlertCircle className="w-8 h-8 text-neutral-500" />
           </div>
-          <h4 className="text-sm font-black italic uppercase text-neutral-400">Estás Desconectado</h4>
-          <p className="text-[10px] text-neutral-600 font-bold uppercase mt-2 leading-relaxed">Ponte en línea para ver las emergencias cerca de ti</p>
+          <h4 className="text-sm font-black italic uppercase text-neutral-300">Estás Desconectado</h4>
+          <p className="text-[10px] text-neutral-500 font-bold uppercase mt-2 leading-relaxed">Ponte en línea para ver las emergencias cerca de ti</p>
         </div>
       )}
 
       <div className={`space-y-4 transition-all duration-500 ${!radarActivo ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
         {solicitudes.length === 0 ? (
-          <div className="text-center py-10">
+          <div className="text-center py-10 bg-neutral-950/40 rounded-3xl border border-neutral-900">
             <div className="relative w-16 h-16 mx-auto mb-6">
               <div className="absolute inset-0 bg-yellow-500/20 rounded-full animate-ping"></div>
               <div className="absolute inset-0 border-2 border-yellow-500/30 rounded-full"></div>
               <Clock className="absolute inset-0 m-auto w-6 h-6 text-yellow-500 animate-pulse" />
             </div>
-            <p className="text-[10px] font-black uppercase italic text-neutral-500 tracking-widest">Escaneando ruta...</p>
+            <p className="text-[10px] font-black uppercase italic text-neutral-400 tracking-widest">Buscando solicitudes en tu zona...</p>
           </div>
-        ) : solicitudes.map((sol: any) => (
-          <div key={sol.id} className="group bg-neutral-950 p-5 rounded-3xl border border-neutral-800 hover:border-yellow-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(234,179,8,0.1)]">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-neutral-900 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                  {sol.descripcion.includes('CAMION') ? '🚛' : '🚗'}
-                </div>
-                <div>
-                  <p className="font-black italic text-sm uppercase text-white group-hover:text-yellow-500 transition-colors">{sol.tipo_servicio}</p>
-                  <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-[0.2em]">{sol.usuarios?.nombre}</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-end">
-                <div className="flex items-center gap-1 text-green-500 text-[10px] font-black italic">
-                  <MapPin className="w-3 h-3" /> {getDistance(sol.id)}
-                </div>
-                <div className="text-neutral-600 text-[8px] font-bold uppercase tracking-widest mt-0.5">
-                  {getTime(sol.id)} est.
-                </div>
-              </div>
-            </div>
+        ) : solicitudes.map((sol: any) => {
+          const isCamion = sol.descripcion?.toUpperCase().includes('CAMION');
+          const isAuto = sol.descripcion?.toUpperCase().includes('AUTO');
+          const isMoto = sol.descripcion?.toUpperCase().includes('MOTO');
+          const isMinivan = sol.descripcion?.toUpperCase().includes('MINIVAN');
+          
+          const vehiculoIcon = isCamion ? '🚛' : isMoto ? '🏍️' : isMinivan ? '🚐' : '🚗';
+          const vehiculoLabel = isCamion ? 'CAMIÓN' : isMoto ? 'MOTO' : isMinivan ? 'MINIVAN' : 'AUTO / SUV';
 
-            <div className="bg-neutral-900/50 p-4 rounded-2xl border border-neutral-800/50 mb-4 group-hover:bg-neutral-900 transition-colors">
-              <p className="text-[10px] text-neutral-400 line-clamp-2 italic font-medium leading-relaxed">"{sol.descripcion}"</p>
-            </div>
-            
-            <div className="flex gap-2 mb-4">
-              <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-yellow-500 font-black text-[10px]">S/</span>
-                <input 
-                  type="number"
-                  placeholder="Tu oferta..."
-                  value={montoOfertaRapida[sol.id] || ''}
-                  onChange={(e) => setMontoOfertaRapida({...montoOfertaRapida, [sol.id]: e.target.value})}
-                  className="w-full bg-neutral-900 border border-neutral-700 rounded-xl pl-8 pr-3 py-3 text-xs font-black text-yellow-500 focus:outline-none focus:border-yellow-500 transition-all"
-                />
-              </div>
-              <button 
-                onClick={() => enviarOfertaRapida(sol.id)}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-3 rounded-xl font-black text-[10px] uppercase italic whitespace-nowrap transition-all shadow-lg shadow-yellow-500/10"
-              >
-                Ofertar
-              </button>
-            </div>
+          const isAccepted = acceptedDirectIds?.includes(sol.id);
 
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-neutral-900">
-              <button 
-                onClick={() => handleAction(sol.id, 'aceptada')}
-                className="bg-neutral-800 hover:bg-green-600 text-neutral-400 hover:text-white py-3 rounded-xl font-black text-[10px] transition-all flex items-center justify-center gap-2 uppercase italic"
-              >
-                <Check className="w-4 h-4" /> Aceptar Directo
-              </button>
-              <button className="bg-neutral-900 hover:bg-red-600/10 text-neutral-700 hover:text-red-500 py-3 rounded-xl font-black text-[10px] transition-all flex items-center justify-center gap-2 uppercase italic">
-                <X className="w-4 h-4" /> Ignorar
-              </button>
+          return (
+            <div key={sol.id} className="group bg-neutral-950 p-5 rounded-3xl border border-neutral-800 hover:border-yellow-500/50 transition-all duration-500 shadow-xl">
+              
+              {/* Header Card */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-neutral-900 rounded-2xl flex items-center justify-center text-2xl border border-neutral-800 shrink-0">
+                    {vehiculoIcon}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-md border border-yellow-500/20">
+                        {vehiculoLabel}
+                      </span>
+                      <span className="text-[9px] font-black uppercase tracking-wider text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20">
+                        {sol.tipo_servicio}
+                      </span>
+                    </div>
+                    <p className="font-black italic text-sm uppercase text-white mt-1 group-hover:text-yellow-500 transition-colors">
+                      {sol.usuarios?.nombre || 'Cliente SOS'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end shrink-0">
+                  <div className="flex items-center gap-1 text-green-400 text-[11px] font-black italic bg-green-500/10 px-2 py-1 rounded-lg border border-green-500/20">
+                    <MapPin className="w-3.5 h-3.5" /> {getRealDistance(sol)}
+                  </div>
+                  <span className="text-neutral-500 text-[8px] font-extrabold uppercase tracking-widest mt-1">
+                    ~{getRealTime(sol)} de llegada
+                  </span>
+                </div>
+              </div>
+
+              {/* Description Box */}
+              <div className="bg-neutral-900 p-3.5 rounded-2xl border border-neutral-800/80 mb-4">
+                <p className="text-xs text-neutral-200 italic font-semibold leading-relaxed">"{sol.descripcion}"</p>
+              </div>
+              
+              {/* Quick Offer Row */}
+              <div className="flex gap-2 mb-3">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-yellow-500 font-black text-xs">S/</span>
+                  <input 
+                    type="number"
+                    placeholder="Monto cotizado..."
+                    value={montoOfertaRapida[sol.id] || ''}
+                    onChange={(e) => setMontoOfertaRapida({...montoOfertaRapida, [sol.id]: e.target.value})}
+                    className="w-full bg-neutral-900 border border-neutral-700 rounded-xl pl-8 pr-3 py-3 text-xs font-black text-yellow-500 focus:outline-none focus:border-yellow-500 transition-all"
+                  />
+                </div>
+                <button 
+                  onClick={() => enviarOfertaRapida(sol.id)}
+                  className="bg-yellow-500 hover:bg-yellow-400 text-black px-5 py-3 rounded-xl font-black text-[10px] uppercase italic whitespace-nowrap transition-all shadow-lg shadow-yellow-500/10"
+                >
+                  Enviar Oferta
+                </button>
+              </div>
+
+              {/* Action Grid */}
+              <div className="grid grid-cols-2 gap-2 pt-3 border-t border-neutral-900">
+                <button 
+                  onClick={() => setChatSolicitudId(sol.id)}
+                  className="bg-neutral-850 hover:bg-neutral-800 text-yellow-500 py-3 rounded-xl font-black text-[10px] transition-all flex items-center justify-center gap-1.5 uppercase italic border border-neutral-750"
+                >
+                  <MessageSquare className="w-4 h-4 text-yellow-500" /> Negociar / Chat
+                </button>
+
+                {isAccepted ? (
+                  <span className="bg-green-500 text-black py-3 rounded-xl font-black text-[10px] transition-all flex items-center justify-center gap-1.5 uppercase italic shadow-lg shadow-green-500/20 animate-in zoom-in">
+                    <CheckCircle2 className="w-4 h-4 text-black" /> Aceptado
+                  </span>
+                ) : (
+                  <button 
+                    onClick={() => handleAction(sol.id, 'aceptada')}
+                    className="bg-green-600 hover:bg-green-500 text-white py-3 rounded-xl font-black text-[10px] transition-all flex items-center justify-center gap-1.5 uppercase italic shadow-lg shadow-green-600/20"
+                  >
+                    <Check className="w-4 h-4" /> Aceptar Directo
+                  </button>
+                )}
+              </div>
+
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   </>
@@ -127,13 +224,27 @@ export default function ProveedorDashboard() {
   const [loading, setLoading] = useState(true);
   const [solicitudes, setSolicitudes] = useState<any[]>([]);
   const [solicitudesActivas, setSolicitudesActivas] = useState<any[]>([]);
+  const [acceptedDirectIds, setAcceptedDirectIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [chatSolicitudId, setChatSolicitudId] = useState<string | null>(null);
-  const [radarActivo, setRadarActivo] = useState(false);
+  const [radarActivo, setRadarActivo] = useState(true);
   const [nuevaSolicitudAlerta, setNuevaSolicitudAlerta] = useState<any>(null);
   const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
   const [montoOfertaRapida, setMontoOfertaRapida] = useState<{[key: string]: string}>({});
+  const [provUbicacion, setProvUbicacion] = useState({ lat: -16.409, lng: -71.537 });
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const getProveedorGps = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setProvUbicacion({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        null,
+        { enableHighAccuracy: true }
+      );
+    }
+  };
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -149,14 +260,21 @@ export default function ProveedorDashboard() {
       .eq('user_id', user.id)
       .single();
 
-    if (provData) setProfile(provData);
+    if (provData) {
+      if (provData.nombre_negocio && /VIP/gi.test(provData.nombre_negocio)) {
+        const cleanName = provData.nombre_negocio.replace(/VIP/gi, '').trim() || 'Taller Mecánico';
+        await supabase.from('proveedores').update({ nombre_negocio: cleanName }).eq('id', provData.id);
+        provData.nombre_negocio = cleanName;
+      }
+      setProfile(provData);
+    }
     setLoading(false);
   };
 
   const fetchSolicitudes = async () => {
     const { data } = await supabase
       .from('solicitudes')
-      .select('*, usuarios(nombre)')
+      .select('*, usuarios(nombre, telefono)')
       .eq('estado', 'pendiente')
       .order('created_at', { ascending: false });
 
@@ -169,44 +287,46 @@ export default function ProveedorDashboard() {
 
     const { data } = await supabase
       .from('solicitudes')
-      .select('*, usuarios(nombre)')
+      .select('*, usuarios(nombre, telefono)')
       .eq('proveedor_id', user.id)
       .in('estado', ['aceptada', 'en_camino', 'en_sitio'])
-      .order('updated_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (data) setSolicitudesActivas(data);
   };
 
   useEffect(() => {
     checkUser();
+    getProveedorGps();
     fetchSolicitudes();
     fetchSolicitudesActivas();
 
-    // Crear elemento de audio para notificaciones
     audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
-    // Tiempo real
     const channel = supabase
-      .channel('radar-proveedor')
+      .channel('radar-proveedor-accept-direct')
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
         table: 'solicitudes',
         filter: 'estado=eq.pendiente'
       }, (payload) => {
-        console.log("Nueva solicitud detectada via Realtime:", payload);
-        if (radarActivo && audioRef.current) {
-          audioRef.current.play().catch(e => console.log("Audio block:", e));
-        }
+        if (!radarActivo) return;
+        setSolicitudes(prev => [payload.new, ...prev]);
         setNuevaSolicitudAlerta(payload.new);
-        fetchSolicitudes();
+        if (audioRef.current) {
+          audioRef.current.play().catch(e => console.log('Audio play blocked', e));
+        }
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitudes' }, () => {
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'solicitudes'
+      }, () => {
         fetchSolicitudes();
         fetchSolicitudesActivas();
       })
       .subscribe((status) => {
-        console.log("Status de Realtime Solicitudes:", status);
         if (status === 'SUBSCRIBED') setRealtimeStatus('connected');
         if (status === 'CHANNEL_ERROR') setRealtimeStatus('error');
       });
@@ -221,6 +341,7 @@ export default function ProveedorDashboard() {
       const updateData: any = { estado: nuevoEstado };
       if (nuevoEstado === 'aceptada') {
         updateData.proveedor_id = user.id;
+        setAcceptedDirectIds(prev => [...prev, solicitudId]);
       }
 
       const { error } = await supabase
@@ -231,6 +352,10 @@ export default function ProveedorDashboard() {
       if (error) throw error;
       
       if (nuevoEstado === 'aceptada') setChatSolicitudId(solicitudId);
+
+      if (nuevoEstado === 'completada') {
+        alert("¡Trabajo marcado como terminado! Se ha enviado la solicitud de calificación al cliente.");
+      }
       
       fetchSolicitudes();
       fetchSolicitudesActivas();
@@ -241,7 +366,10 @@ export default function ProveedorDashboard() {
 
   const enviarOfertaRapida = async (solicitudId: string) => {
     const monto = montoOfertaRapida[solicitudId];
-    if (!monto) return;
+    if (!monto || parseFloat(monto) <= 0) {
+      alert("Por favor ingresa un monto válido");
+      return;
+    }
 
     try {
       const { error: msgError } = await supabase
@@ -249,17 +377,18 @@ export default function ProveedorDashboard() {
         .insert({
           solicitud_id: solicitudId,
           emisor_id: user.id,
-          contenido: `OFERTA DE AUXILIO: S/ ${monto}`,
+          contenido: `OFERTA DE AUXILIO: S/ ${parseFloat(monto).toFixed(2)}`,
           es_oferta: true,
           monto_oferta: parseFloat(monto)
         });
 
       if (msgError) throw msgError;
 
-      alert("Oferta enviada. Espera a que el cliente acepte.");
+      alert("¡Oferta enviada correctamente! El cliente la verá en su pantalla.");
       setMontoOfertaRapida({...montoOfertaRapida, [solicitudId]: ''});
+      setChatSolicitudId(solicitudId);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Error al enviar oferta");
     }
   };
 
@@ -268,17 +397,18 @@ export default function ProveedorDashboard() {
     router.push('/login');
   };
 
-  // Simulated distance and time for inDrive feel
-  const getDistance = (id: string) => {
-    const distances = ['1.2 km', '2.5 km', '0.8 km', '4.1 km', '1.7 km'];
-    const index = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % distances.length;
-    return distances[index];
+  // Real GPS Distance & Time
+  const getRealDistance = (sol: any) => {
+    if (!sol.latitud || !sol.longitud) return '1.5 km';
+    const dist = getHaversineDistance(provUbicacion.lat, provUbicacion.lng, sol.latitud, sol.longitud);
+    return `${dist.toFixed(1)} km`;
   };
 
-  const getTime = (id: string) => {
-    const times = ['4 min', '8 min', '3 min', '12 min', '6 min'];
-    const index = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % times.length;
-    return times[index];
+  const getRealTime = (sol: any) => {
+    if (!sol.latitud || !sol.longitud) return '5 min';
+    const dist = getHaversineDistance(provUbicacion.lat, provUbicacion.lng, sol.latitud, sol.longitud);
+    const mins = Math.max(3, Math.round(dist * 3.5));
+    return `${mins} min`;
   };
 
   if (loading) return <DashboardSkeleton />;
@@ -287,10 +417,10 @@ export default function ProveedorDashboard() {
     <div className="h-screen w-full bg-[#0a0a0a] text-white flex flex-col md:flex-row relative overflow-hidden">
       
       {/* Top Status Bar (Mobile Only) */}
-      <div className="md:hidden bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800 p-4 flex items-center justify-between absolute top-0 inset-x-0 z-[3000]">
+      <div className="md:hidden bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800 p-4 flex items-center justify-between absolute top-0 inset-x-0 z-[3000]">
         <div className="flex items-center gap-2">
           <Truck className="w-6 h-6 text-yellow-500" />
-          <span className="font-black italic uppercase text-xs">PROVEEDOR<span className="text-yellow-500">SOS</span></span>
+          <span className="font-black italic uppercase text-xs tracking-wider">PROVEEDOR<span className="text-yellow-500">SOS</span></span>
         </div>
         <div className="flex items-center gap-3">
           <div className={`w-2 h-2 rounded-full ${realtimeStatus === 'connected' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500 animate-pulse'}`}></div>
@@ -306,106 +436,102 @@ export default function ProveedorDashboard() {
       </div>
 
       {/* Sidebar (Desktop) */}
-      <div className="hidden md:flex w-[400px] bg-neutral-900 border-r border-neutral-800 p-6 flex-col overflow-y-auto max-h-screen">
-        <div className="flex items-center justify-between mb-10">
+      <div className="hidden md:flex w-[420px] bg-neutral-900 border-r border-neutral-800 p-6 flex-col overflow-y-auto max-h-screen custom-scrollbar">
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-2">
             <Truck className="w-8 h-8 text-yellow-500" />
-            <span className="text-xl font-black italic uppercase text-white">PROVEEDOR<span className="text-yellow-500">SOS</span></span>
+            <span className="text-xl font-black italic uppercase text-white tracking-wider">PROVEEDOR<span className="text-yellow-500">SOS</span></span>
           </div>
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${realtimeStatus === 'connected' ? 'bg-green-500' : realtimeStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500 animate-pulse'}`}></div>
-            <button onClick={handleLogout} className="p-2 text-neutral-500 hover:text-white transition-colors">
+            <div className={`w-2 h-2 rounded-full ${realtimeStatus === 'connected' ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`}></div>
+            <button onClick={handleLogout} className="p-2 text-neutral-400 hover:text-white transition-colors" title="Cerrar Sesión">
               <LogOut className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        <div className="mb-10">
+        {/* Online Toggle */}
+        <div className="mb-8">
           <button 
             onClick={() => setRadarActivo(!radarActivo)}
-            className={`w-full p-6 rounded-3xl font-black italic uppercase text-sm flex items-center justify-between transition-all duration-500 border-2 ${
+            className={`w-full p-5 rounded-3xl font-black italic uppercase text-xs flex items-center justify-between transition-all duration-500 border-2 ${
               radarActivo 
-                ? 'bg-green-600/10 border-green-600 text-green-500 shadow-[0_0_30px_rgba(22,163,74,0.1)]' 
-                : 'bg-neutral-950 border-neutral-800 text-neutral-600'
+                ? 'bg-green-600/10 border-green-600 text-green-400 shadow-[0_0_30px_rgba(22,163,74,0.1)]' 
+                : 'bg-neutral-950 border-neutral-800 text-neutral-500'
             }`}
           >
-            <div className="flex items-center gap-4">
-              <div className={`w-4 h-4 rounded-full ${radarActivo ? 'bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.8)]' : 'bg-neutral-800'}`}></div>
-              {radarActivo ? 'ESTOY EN LÍNEA' : 'ESTOY DESCONECTADO'}
+            <div className="flex items-center gap-3">
+              <div className={`w-3.5 h-3.5 rounded-full ${radarActivo ? 'bg-green-500 animate-pulse' : 'bg-neutral-800'}`}></div>
+              {radarActivo ? 'ESTOY EN LÍNEA (RECIBIENDO ALERTAS)' : 'ESTOY DESCONECTADO'}
             </div>
-            <div className={`w-12 h-6 rounded-full relative transition-colors ${radarActivo ? 'bg-green-600' : 'bg-neutral-800'}`}>
-              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${radarActivo ? 'left-7' : 'left-1'}`}></div>
+            <div className={`w-10 h-5 rounded-full relative transition-colors ${radarActivo ? 'bg-green-600' : 'bg-neutral-800'}`}>
+              <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${radarActivo ? 'left-5.5' : 'left-0.5'}`}></div>
             </div>
           </button>
-          <p className="text-[9px] font-black text-neutral-500 uppercase tracking-widest mt-4 text-center">
-            {radarActivo ? 'RECIBIRÁS ALERTAS EN TIEMPO REAL' : 'ACTIVA PARA RECIBIR TRABAJOS'}
-          </p>
         </div>
 
-        <div className="bg-neutral-950 p-6 rounded-2xl border border-neutral-800 mb-8">
+        {/* Profile Card */}
+        <div className="bg-neutral-950 p-5 rounded-3xl border border-neutral-800 mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-neutral-800 rounded-full flex items-center justify-center border-2 border-yellow-500">
-              <span className="text-2xl font-black text-yellow-500 italic uppercase">{user?.email?.substring(0, 2)}</span>
+            <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-2xl flex items-center justify-center border border-yellow-400 text-black shadow-lg shrink-0">
+              <span className="text-xl font-black italic uppercase">{profile?.nombre_negocio?.substring(0, 2) || 'TS'}</span>
             </div>
-            <div>
-              <h2 className="text-lg font-black italic uppercase truncate">{profile?.nombre_negocio || 'Mi Taller'}</h2>
-              <div className="flex items-center gap-1 text-yellow-500">
-                <Star className="w-4 h-4 fill-yellow-500" />
-                <span className="text-sm font-bold">{profile?.calificacion_promedio?.toFixed(1) || '0.0'}</span>
+            <div className="overflow-hidden">
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-base font-black italic uppercase text-white truncate">{profile?.nombre_negocio || 'Mi Taller SOS'}</h2>
+                <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
+              </div>
+              <div className="flex items-center gap-1 text-yellow-400 mt-0.5">
+                <Star className="w-3.5 h-3.5 fill-yellow-400" />
+                <span className="text-xs font-black">{profile?.calificacion_promedio?.toFixed(1) || '5.0'}</span>
+                <span className="text-[9px] text-neutral-500 font-bold ml-1 uppercase">• Proveedor Verificado</span>
               </div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-neutral-900 p-3 rounded-xl text-center">
-              <p className="text-[9px] text-neutral-500 font-black uppercase tracking-widest">Estatus</p>
-              <p className="text-xs font-black text-green-500 italic mt-1 uppercase">Disponible</p>
+            <div className="bg-neutral-900 p-3 rounded-2xl border border-neutral-850 text-center">
+              <p className="text-[8px] text-neutral-500 font-black uppercase tracking-widest">Estatus</p>
+              <p className="text-xs font-black text-green-400 italic mt-0.5 uppercase">Disponible</p>
             </div>
-            <div className="bg-neutral-900 p-3 rounded-xl text-center">
-              <p className="text-[9px] text-neutral-500 font-black uppercase tracking-widest">Activos</p>
-              <p className="text-xs font-black text-white italic mt-1 uppercase">{solicitudesActivas.length}</p>
+            <div className="bg-neutral-900 p-3 rounded-2xl border border-neutral-850 text-center">
+              <p className="text-[8px] text-neutral-500 font-black uppercase tracking-widest">Activos</p>
+              <p className="text-xs font-black text-white italic mt-0.5 uppercase">{solicitudesActivas.length}</p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-8">
-          <div className="bg-neutral-950 p-4 rounded-2xl border border-neutral-800">
-            <p className="text-[8px] text-neutral-500 font-black uppercase tracking-widest mb-1">Ganado Hoy</p>
-            <p className="text-lg font-black text-green-500 italic">S/ 245.00</p>
-          </div>
-          <div className="bg-neutral-950 p-4 rounded-2xl border border-neutral-800">
-            <p className="text-[8px] text-neutral-500 font-black uppercase tracking-widest mb-1">Completados</p>
-            <p className="text-lg font-black text-white italic">12</p>
-          </div>
-        </div>
-
-        {/* Radar List (Desktop) */}
+        {/* Radar List */}
         <RadarContent 
           radarActivo={radarActivo} 
           solicitudes={solicitudes} 
+          solicitudesActivas={solicitudesActivas}
           montoOfertaRapida={montoOfertaRapida}
           setMontoOfertaRapida={setMontoOfertaRapida}
           enviarOfertaRapida={enviarOfertaRapida}
           handleAction={handleAction}
-          getDistance={getDistance}
-          getTime={getTime}
+          getRealDistance={getRealDistance}
+          getRealTime={getRealTime}
+          setChatSolicitudId={setChatSolicitudId}
+          acceptedDirectIds={acceptedDirectIds}
         />
       </div>
 
       {/* Main Map Content */}
       <div className="flex-1 relative h-full">
         <Mapa 
+          center={[provUbicacion.lat, provUbicacion.lng]}
           markers={[
             ...solicitudes.map(s => ({
               id: s.id,
               position: [s.latitud, s.longitud] as [number, number],
-              type: (s.descripcion.includes('CAMION') ? 'truck' : 'car') as any,
-              label: `EMERGENCIA: ${s.tipo_servicio.toUpperCase()}`
+              type: (s.descripcion?.toUpperCase().includes('CAMION') ? 'truck' : 'car') as any,
+              label: `EMERGENCIA SOS: ${s.tipo_servicio.toUpperCase()} (${getRealDistance(s)})`
             })),
             ...solicitudesActivas.map(s => ({
               id: s.id,
               position: [s.latitud, s.longitud] as [number, number],
-              type: (s.descripcion.includes('CAMION') ? 'truck' : 'car') as any,
-              label: `ACTIVO: ${s.usuarios?.nombre}`
+              type: (s.descripcion?.toUpperCase().includes('CAMION') ? 'truck' : 'car') as any,
+              label: `EN SERVICIO: ${s.usuarios?.nombre}`
             }))
           ]}
         />
@@ -413,30 +539,21 @@ export default function ProveedorDashboard() {
         {/* Mobile Bottom Sheet */}
         <div className="md:hidden absolute inset-x-0 bottom-0 z-[2000] p-4 pointer-events-none">
           <div className="max-w-md mx-auto pointer-events-auto">
-            <div className="bg-neutral-900 rounded-t-[40px] border-x border-t border-neutral-800 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] p-6 max-h-[60vh] overflow-y-auto">
+            <div className="bg-neutral-900 rounded-t-[35px] border-x border-t border-neutral-800 shadow-2xl p-6 max-h-[65vh] overflow-y-auto">
               <div className="w-12 h-1.5 bg-neutral-800 rounded-full mx-auto mb-6"></div>
               
-              {/* Stats Mini Grid */}
-              <div className="flex gap-3 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-                <div className="bg-neutral-950 p-4 rounded-2xl border border-neutral-800 min-w-[140px]">
-                  <p className="text-[7px] text-neutral-500 font-black uppercase mb-1">Ganado Hoy</p>
-                  <p className="text-sm font-black text-green-500 italic">S/ 245.00</p>
-                </div>
-                <div className="bg-neutral-950 p-4 rounded-2xl border border-neutral-800 min-w-[140px]">
-                  <p className="text-[7px] text-neutral-500 font-black uppercase mb-1">Completados</p>
-                  <p className="text-sm font-black text-white italic">12</p>
-                </div>
-              </div>
-
               <RadarContent 
                 radarActivo={radarActivo} 
                 solicitudes={solicitudes} 
+                solicitudesActivas={solicitudesActivas}
                 montoOfertaRapida={montoOfertaRapida}
                 setMontoOfertaRapida={setMontoOfertaRapida}
                 enviarOfertaRapida={enviarOfertaRapida}
                 handleAction={handleAction}
-                getDistance={getDistance}
-                getTime={getTime}
+                getRealDistance={getRealDistance}
+                getRealTime={getRealTime}
+                setChatSolicitudId={setChatSolicitudId}
+                acceptedDirectIds={acceptedDirectIds}
               />
             </div>
           </div>
@@ -445,7 +562,7 @@ export default function ProveedorDashboard() {
       
       {/* Modals & Overlays */}
       {chatSolicitudId && user && (
-        <div className="fixed bottom-6 right-6 w-full max-w-[350px] h-[500px] z-[4000] px-4">
+        <div className="fixed inset-0 sm:inset-auto sm:bottom-6 sm:right-6 w-full sm:max-w-[380px] h-full sm:h-[550px] z-[4000] p-0 sm:p-0 flex flex-col">
           <ChatBox 
             solicitudId={chatSolicitudId} 
             currentUserId={user.id} 
@@ -455,34 +572,36 @@ export default function ProveedorDashboard() {
         </div>
       )}
 
-      {/* Nueva Solicitud Alert Modal */}
+      {/* Alert Modal */}
       {nuevaSolicitudAlerta && (
-        <div className="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-neutral-900 border-2 border-yellow-500 w-full max-w-sm rounded-3xl p-8 shadow-[0_0_50px_rgba(234,179,8,0.2)] text-center space-y-6 animate-in zoom-in-95">
-            <div className="w-20 h-20 bg-yellow-500 rounded-full flex items-center justify-center mx-auto animate-bounce">
-              <AlertCircle className="w-10 h-10 text-black" />
+        <div className="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-black/85 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-neutral-900 border-2 border-yellow-500 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center space-y-5 animate-in zoom-in-95">
+            <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto animate-bounce">
+              <AlertCircle className="w-9 h-9 text-black" />
             </div>
             <div>
-              <h2 className="text-2xl font-black italic uppercase text-yellow-500">¡NUEVA SOLICITUD!</h2>
-              <p className="text-xs font-bold text-neutral-400 mt-2 uppercase tracking-widest">Alguien necesita tu ayuda ahora</p>
+              <h2 className="text-xl font-black italic uppercase text-yellow-500">¡NUEVA EMERGENCIA VIAL!</h2>
+              <p className="text-[10px] font-bold text-neutral-400 mt-1 uppercase tracking-widest">Un conductor solicita auxilio cercano</p>
             </div>
-            <div className="bg-neutral-950 p-4 rounded-2xl border border-neutral-800">
-              <p className="text-sm font-black italic uppercase text-white">{nuevaSolicitudAlerta.tipo_servicio}</p>
-              <p className="text-[10px] text-neutral-500 mt-1 line-clamp-2">{nuevaSolicitudAlerta.descripcion}</p>
+            <div className="bg-neutral-950 p-4 rounded-2xl border border-neutral-800 text-left">
+              <span className="text-[9px] font-black uppercase text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20">
+                {nuevaSolicitudAlerta.tipo_servicio}
+              </span>
+              <p className="text-xs font-semibold italic text-neutral-200 mt-2">"{nuevaSolicitudAlerta.descripcion}"</p>
             </div>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               <button 
                 onClick={() => {
-                  handleAction(nuevaSolicitudAlerta.id, 'aceptada');
+                  setChatSolicitudId(nuevaSolicitudAlerta.id);
                   setNuevaSolicitudAlerta(null);
                 }}
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-black py-4 rounded-2xl font-black uppercase italic transition-all"
+                className="w-full bg-yellow-500 hover:bg-yellow-400 text-black py-3.5 rounded-xl font-black uppercase italic text-xs transition-all shadow-lg"
               >
-                Aceptar Auxilio
+                Abrir Chat y Negociar
               </button>
               <button 
                 onClick={() => setNuevaSolicitudAlerta(null)}
-                className="w-full bg-neutral-800 text-white py-4 rounded-2xl font-black uppercase italic text-xs"
+                className="w-full bg-neutral-800 text-neutral-400 py-3 rounded-xl font-black uppercase italic text-[10px]"
               >
                 Ignorar
               </button>
@@ -490,6 +609,7 @@ export default function ProveedorDashboard() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
