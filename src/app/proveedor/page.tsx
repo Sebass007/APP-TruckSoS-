@@ -562,8 +562,8 @@ export default function ProveedorDashboard() {
       
       {/* Modals & Overlays */}
       {chatSolicitudId && user && (
-        <div className="fixed inset-0 z-[5000] bg-black/60 backdrop-blur-sm flex items-end justify-center p-0 sm:p-6 animate-in fade-in">
-          <div className="bg-neutral-900 w-full max-w-lg h-[85vh] sm:h-[600px] rounded-t-3xl sm:rounded-3xl shadow-2xl relative overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[5000] bg-black/60 backdrop-blur-sm flex items-end justify-center p-0 sm:p-6 animate-in fade-in pb-2 sm:pb-0">
+          <div className="bg-neutral-900 w-[92%] sm:w-full max-w-md h-[85vh] sm:h-[600px] rounded-3xl shadow-2xl relative overflow-hidden flex flex-col border border-neutral-800">
             <ChatBox 
               solicitudId={chatSolicitudId} 
               currentUserId={user.id} 
