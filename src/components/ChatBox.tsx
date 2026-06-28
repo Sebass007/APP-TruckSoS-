@@ -161,29 +161,33 @@ export default function ChatBox({ solicitudId, currentUserId, onClose, tipoUsuar
   return (
     <div className="flex flex-col h-full bg-neutral-900 border border-neutral-800 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4">
       {/* Header */}
-      <div className="p-4 bg-neutral-800/90 backdrop-blur-md border-b border-neutral-700 flex justify-between items-center shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-orange-600 rounded-full flex items-center justify-center shadow-lg shadow-orange-600/30">
-            <User className="w-5 h-5 text-white" />
+      <div className="p-4 pt-5 sm:pt-4 bg-neutral-800/95 backdrop-blur-md border-b border-neutral-700 flex justify-between items-center shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 bg-orange-600 rounded-full flex items-center justify-center shadow-lg shadow-orange-600/30 shrink-0">
+            <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
-          <div>
-            <p className="text-xs font-black italic uppercase text-white tracking-wider">Chat de Negociación</p>
+          <div className="min-w-0">
+            <p className="text-xs font-black italic uppercase text-white tracking-wider truncate">Chat de Negociación</p>
             <p className="text-[9px] text-green-400 font-extrabold uppercase flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></span> En Línea
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {tipoUsuario === 'proveedor' && (
             <button 
               onClick={finalizarServicio}
-              className="bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded-xl font-black text-[10px] uppercase italic transition-all flex items-center gap-1 shadow-md shadow-green-600/30 shrink-0"
+              className="bg-green-600 hover:bg-green-500 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl font-black text-[9px] sm:text-[10px] uppercase italic transition-all flex items-center gap-1 shadow-md shadow-green-600/30 shrink-0"
             >
-              <CheckCircle2 className="w-3.5 h-3.5" /> Trabajo Terminado
+              <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Trabajo Terminado
             </button>
           )}
-          <button onClick={onClose} className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded-xl transition-all">
-            <X className="w-5 h-5" />
+          <button 
+            onClick={onClose} 
+            className="p-2 bg-neutral-700/60 hover:bg-neutral-700 text-white rounded-xl border border-neutral-600 transition-all shadow-md shrink-0"
+            title="Cerrar Chat"
+          >
+            <X className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>
