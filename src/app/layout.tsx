@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { useEffect } from "react";
 import { App } from "@capacitor/app";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +28,6 @@ export default function RootLayout({
         if (canGoBack) {
           window.history.back();
         } else {
-          // Si no hay historial, salir de la app (solo funciona en Android/iOS)
           App.exitApp();
         }
       });
@@ -41,7 +41,11 @@ export default function RootLayout({
       lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full bg-neutral-950 text-neutral-100">{children}</body>
+      <body className="min-h-full bg-neutral-950 text-neutral-100">
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
+      </body>
     </html>
   );
 }
