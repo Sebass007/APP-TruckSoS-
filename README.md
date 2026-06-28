@@ -1,103 +1,100 @@
 # Mecánico AQP (TruckSOS) 🚛🚗
 
-Aplicación de auxilio mecánico en tiempo real con flujo de negociación tipo inDrive, construida con **Next.js (React)**, **Capacitor** y **Supabase**.
-
-Este documento contiene las instrucciones precisas para clonar, configurar y levantar el proyecto en tu máquina local sin errores.
+**Mecánico AQP (TruckSOS)** es una solución móvil de auxilio mecánico inmediato en tiempo real diseñada para conductores varados en la carretera o la ciudad. La plataforma utiliza un flujo dinámico de negociación directa (tipo *inDrive*) entre el cliente y proveedores cercanos, respaldado por un asistente inteligente de recomendaciones técnicas.
 
 ---
 
-## 📋 Requisitos Previos
+## 🛠️ Stack Tecnológico
 
-Asegúrate de tener instalado lo siguiente en tu máquina:
-*   **Node.js:** Versión 18 o superior.
-*   **Android Studio:** Con el SDK de Android instalado (mínimo API 24).
-*   **Java JDK:** Versión 21 (Requerido por las últimas versiones de Android y Gradle).
+El proyecto está desarrollado con una arquitectura moderna híbrida multiplataforma:
+
+* **Core & Framework Web:** [Next.js 16](https://nextjs.org/) (React 19, App Router) y [TypeScript](https://www.typescriptlang.org/).
+* **Estilos & Diseño:** [Tailwind CSS v4](https://tailwindcss.com/) con diseño adaptable en modo oscuro y componentes interactivos.
+* **Backend & Persistencia:** [Supabase](https://supabase.com/) (Autenticación de usuarios, Base de Datos PostgreSQL en tiempo real con Row Level Security y WebSockets).
+* **Geolocalización & Mapas:** [Leaflet](https://leafletjs.com/) y `react-leaflet` con mapas interactivos de soporte.
+* **Integración Nativa Móvil:** [Capacitor v8](https://capacitorjs.com/) para compilación y generación del paquete nativo Android (APK).
+* **Iconografía:** [Lucide React](https://lucide.react.dev/).
 
 ---
 
-## 🚀 Guía de Configuración Paso a Paso
+## 🤖 Componente de IA (TruckSOS AI Assistant)
 
-Sigue estos pasos en orden para levantar el proyecto desde cero:
+La aplicación integra el **Asistente Experto TruckSOS IA** directamente dentro del flujo central de solicitud de ayuda (`AsistenteIA.tsx`):
 
-### 1. Clonar el Repositorio
-Clona el repositorio en tu máquina y entra al directorio del proyecto:
+1. **Diagnóstico & Recomendación Técnica:** El usuario interactúa con el asistente para recibir recomendaciones de repuestos (llantas de carga o ligeras, baterías de alto amperaje, aceites sintéticos o sistemas de freno) ajustadas exactamente al tipo de vehículo (Camión, Auto, Minivan, Moto).
+2. **Impacto Directo en la UI ("Copiar al SOS"):** La IA no funciona como un chat aislado; los resultados incluyen tarjetas interactivas con precio estimado, especificaciones y un botón de un solo clic (**"Copiar al SOS"**).
+3. **Modificación de Estado:** Al presionar el botón, la IA auto-completa la categoría de emergencia y la descripción técnica dentro del formulario activo del cliente, permitiéndole enviar la alerta de auxilio de forma inmediata a los mecánicos cercanos.
+
+---
+
+## 📸 Capturas de Pantalla de la Aplicación
+
+| Landing Page & Mapa | Formulario SOS con IA | Panel de Negociación |
+| :---: | :---: | :---: |
+| *(Agrega aquí captura del mapa)* | *(Agrega aquí captura del Asistente IA)* | *(Agrega aquí captura de ofertas)* |
+
+*(Nota: Reemplaza los textos anteriores por los enlaces o imágenes de tu aplicación).*
+
+---
+
+## 🎬 Video Demostrativo
+
+📹 **Link al Video de YouTube (3-5 minutos):** [Ver Video en YouTube](https://youtube.com/YOUR_VIDEO_LINK_HERE)  
+*(El video muestra el flujo completo: registro, uso de la IA con datos reales, solicitud de auxilio y negociación en tiempo real).*
+
+---
+
+## 👥 Integrantes del Equipo
+
+* **Integrante 1:** Nombre Completo - Código / Rol
+* **Integrante 2:** Nombre Completo - Código / Rol
+* **Integrante 3:** Nombre Completo - Código / Rol
+
+---
+
+## 🚀 Guía de Configuración e Instalación
+
+Sigue estos pasos para levantar el proyecto en tu entorno local:
+
+### 1. Requisitos Previos
+* **Node.js:** Versión 18 o superior.
+* **Android Studio:** SDK de Android instalado (API 24 o superior).
+* **Java JDK:** Versión 21.
+
+### 2. Clonar e Instalar Dependencias
 ```bash
-git clone <url-del-repositorio>
-cd mecanico-aqp
-```
-
-### 2. Instalar Dependencias
-Instala los paquetes de Node.js necesarios:
-```bash
+git clone https://github.com/Sebass007/APP-TruckSoS-.git
+cd APP-TruckSoS-
 npm install
 ```
 
-### 3. Configurar Variables de Entorno (Crítico) 🔑
-El proyecto requiere conexión con Supabase. Las variables de entorno **no se suben al repositorio** por seguridad (están ignoradas en el `.gitignore`).
-1. Crea una copia del archivo de ejemplo `.env.example` y llámalo `.env` o `.env.local`:
-   * En Windows (PowerShell):
-     ```powershell
-     cp .env.example .env.local
-     ```
-   * En macOS/Linux/Git Bash:
-     ```bash
-     cp .env.example .env.local
-     ```
-2. Abre el archivo `.env.local` recién creado y coloca los valores reales para las siguientes variables (solicítalas al administrador del proyecto):
-   * `NEXT_PUBLIC_SUPABASE_URL`
-   * `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+### 3. Configurar Variables de Entorno y API Keys 🔑
+Crea un archivo `.env.local` en la raíz del proyecto (basado en `.env.example`) y configura las credenciales de Supabase:
 
-### 4. Compilar la Web y Sincronizar con Capacitor 🔄
-Dado que Next.js realiza una exportación estática en la carpeta `out/`, **debes compilar el proyecto antes de poder sincronizarlo con Android**. De lo contrario, Capacitor arrojará un error diciendo que la carpeta `out` no existe.
-
-Hemos creado un comando que compila la web y la sincroniza con Android automáticamente:
-```bash
-npm run mobile:sync
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key_aqui
 ```
 
-*(O de manera manual paso a paso:)*
-```bash
-# 1. Compila la web y genera la carpeta /out
-npm run static
-
-# 2. Copia y sincroniza los archivos con la carpeta android/
-npx cap sync android
-```
-
-### 5. Abrir y Ejecutar en Android Studio 📱
-1. Abre **Android Studio**.
-2. Selecciona **Open** (o *Import Project*) y abre **únicamente la carpeta `android`** que está en la raíz de este proyecto.
-3. Espera pacientemente a que termine el **Gradle Sync** automático.
-   * *Nota:* Si Android Studio te pide seleccionar la versión de JDK o arroja un error de compatibilidad Gradle, asegúrate de configurar el proyecto para usar **Java/JDK 21** en:
-     `File` -> `Settings` (o `Preferences` en Mac) -> `Build, Execution, Deployment` -> `Build Tools` -> `Gradle` -> `Gradle JDK`.
-4. Conecta tu celular con depuración USB activada o inicia un Emulador.
-5. Presiona el botón verde de **Run** (Play) en la barra superior de Android Studio para instalar y correr la aplicación en tu dispositivo.
-
----
-
-## ⚠️ Notas Importantes y Solución de Problemas
-
-### 1. Gradle Wrapper
-**¡NO modifiques, elimines ni ignores los siguientes archivos!** Estos archivos aseguran que todo el equipo use exactamente la misma versión de Gradle y evitan errores de compilación:
-* `android/gradlew`
-* `android/gradlew.bat`
-* `android/gradle/wrapper/gradle-wrapper.jar`
-* `android/gradle/wrapper/gradle-wrapper.properties`
-
-### 2. Google Maps no carga o se queda en blanco
-Para que el mapa nativo o de Google cargue en el celular, asegúrate de que el archivo `android/app/src/main/AndroidManifest.xml` tenga una API Key válida configurada.
-Busca la siguiente línea en el archivo y verifica la API Key:
+*Para mapas nativos en Android, asegúrate de colocar tu Google Maps API Key en `android/app/src/main/AndroidManifest.xml`:*
 ```xml
 <meta-data android:name="com.google.android.geo.API_KEY" android:value="TU_API_KEY_AQUÍ"/>
 ```
 
-### 3. Limpiar compilaciones previas si algo falla
-Si después de actualizar el repositorio sigues experimentando errores con Gradle, puedes limpiar la caché corriendo desde la raíz del proyecto:
+### 4. Compilar Web y Sincronizar con Android 🔄
+Para generar la carpeta estática `/out` y copiarla a Android Studio:
 ```bash
-# Limpia los archivos estáticos de Next.js
-rm -rf .next out
-
-# Sincroniza limpiamente Capacitor otra vez
 npm run mobile:sync
 ```
-Y en Android Studio haz: `Build` -> `Clean Project`, y luego `File` -> `Sync Project with Gradle Files`.
+
+### 5. Abrir en Android Studio y Generar APK 📱
+```bash
+npm run mobile:open
+```
+* O abre manualmente la carpeta **`android`** dentro de Android Studio.
+* Para generar el APK de entrega: Ve a **Build ➔ Build Bundle(s) / APK(s) ➔ Build APK(s)**.
+
+---
+
+## ⚠️ Solución de Problemas Frecuentes
+Si realizas cambios en el código web (Next.js/React), recuerda siempre ejecutar `npm run mobile:sync` antes de volver a presionar **Run (Play)** en Android Studio para visualizar las actualizaciones en el celular o emulador.
