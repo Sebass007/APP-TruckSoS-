@@ -131,31 +131,31 @@ const RadarContent = ({
             <div key={sol.id} className="group bg-neutral-950 p-5 rounded-3xl border border-neutral-800 hover:border-yellow-500/50 transition-all duration-500 shadow-xl">
               
               {/* Header Card */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-neutral-900 rounded-2xl flex items-center justify-center text-2xl border border-neutral-800 shrink-0">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 bg-neutral-900 rounded-2xl flex items-center justify-center text-xl sm:text-2xl border border-neutral-800 shrink-0">
                     {vehiculoIcon}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-md border border-yellow-500/20">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-md border border-yellow-500/20 shrink-0">
                         {vehiculoLabel}
                       </span>
-                      <span className="text-[9px] font-black uppercase tracking-wider text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20 shrink-0">
                         {sol.tipo_servicio}
                       </span>
                     </div>
-                    <p className="font-black italic text-sm uppercase text-white mt-1 group-hover:text-yellow-500 transition-colors">
+                    <p className="font-black italic text-xs sm:text-sm uppercase text-white mt-1 group-hover:text-yellow-500 transition-colors truncate">
                       {sol.usuarios?.nombre || 'Cliente SOS'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end shrink-0">
-                  <div className="flex items-center gap-1 text-green-400 text-[11px] font-black italic bg-green-500/10 px-2 py-1 rounded-lg border border-green-500/20">
-                    <MapPin className="w-3.5 h-3.5" /> {getRealDistance(sol)}
+                <div className="flex flex-col items-end shrink-0 ml-auto">
+                  <div className="flex items-center gap-1 text-green-400 text-[10px] sm:text-[11px] font-black italic bg-green-500/10 px-2 py-1 rounded-lg border border-green-500/20 shrink-0">
+                    <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {getRealDistance(sol)}
                   </div>
-                  <span className="text-neutral-500 text-[8px] font-extrabold uppercase tracking-widest mt-1">
+                  <span className="text-neutral-500 text-[8px] font-extrabold uppercase tracking-widest mt-0.5 whitespace-nowrap">
                     ~{getRealTime(sol)} de llegada
                   </span>
                 </div>
