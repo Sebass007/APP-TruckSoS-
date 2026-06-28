@@ -43,6 +43,8 @@ android/local.properties
 android/.gradle/
 android/build/
 android/app/build/
+.idea/
+android/.idea/
 
 # vercel
 .vercel
