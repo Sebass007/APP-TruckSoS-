@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { Truck, MapPin, Check, MessageSquare, AlertCircle, Phone, Clock, LogOut, Navigation, Star, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Truck, MapPin, Check, MessageSquare, AlertCircle, Phone, Clock, LogOut, Navigation, Star, ShieldCheck, CheckCircle2, UserCheck, X, Wallet, FileText, Calendar } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import ChatBox from '@/components/ChatBox';
 import { DashboardSkeleton } from '@/components/Skeleton';
@@ -232,6 +232,8 @@ export default function ProveedorDashboard() {
   const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
   const [montoOfertaRapida, setMontoOfertaRapida] = useState<{[key: string]: string}>({});
   const [provUbicacion, setProvUbicacion] = useState({ lat: -16.409, lng: -71.537 });
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [historialCompletado, setHistorialCompletado] = useState<any[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const getProveedorGps = () => {
@@ -269,6 +271,27 @@ export default function ProveedorDashboard() {
       setProfile(provData);
     }
     setLoading(false);
+    fetchHistorialCompletado();
+  };
+
+  const fetchHistorialCompletado = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('solicitudes')
+        .select('*, usuarios(nombre, telefono)')
+        .eq('proveedor_id', user.id)
+        .eq('estado', 'completada')
+        .order('created_at', { ascending: false });
+
+      if (data) {
+        setHistorialCompletado(data);
+      }
+    } catch (e) {
+      console.error("Error cargando historial de proveedor:", e);
+    }
   };
 
   const fetchSolicitudes = async () => {
@@ -300,6 +323,7 @@ export default function ProveedorDashboard() {
     getProveedorGps();
     fetchSolicitudes();
     fetchSolicitudesActivas();
+    fetchHistorialCompletado();
 
     audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
@@ -325,6 +349,7 @@ export default function ProveedorDashboard() {
       }, () => {
         fetchSolicitudes();
         fetchSolicitudesActivas();
+        fetchHistorialCompletado();
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') setRealtimeStatus('connected');
@@ -359,6 +384,7 @@ export default function ProveedorDashboard() {
       
       fetchSolicitudes();
       fetchSolicitudesActivas();
+      fetchHistorialCompletado();
     } catch (err: any) {
       setError(err.message);
     }
@@ -418,9 +444,20 @@ export default function ProveedorDashboard() {
       
       {/* Top Status Bar (Mobile Only) */}
       <div className="md:hidden bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800 p-4 flex items-center justify-between absolute top-0 inset-x-0 z-[3000]">
-        <div className="flex items-center gap-2">
-          <Truck className="w-6 h-6 text-yellow-500" />
-          <span className="font-black italic uppercase text-xs tracking-wider">PROVEEDOR<span className="text-yellow-500">SOS</span></span>
+        <div 
+          onClick={() => {
+            fetchHistorialCompletado();
+            setShowProfileModal(true);
+          }}
+          className="flex items-center gap-2.5 cursor-pointer active:opacity-70"
+          title="Ver Perfil y Ganancias"
+        >
+          <div className="w-8 h-8 bg-yellow-500 rounded-xl flex items-center justify-center border border-yellow-400 text-black text-xs font-black italic uppercase shrink-0">
+            {profile?.nombre_negocio?.substring(0, 2) || 'TS'}
+          </div>
+          <span className="font-black italic uppercase text-[10px] sm:text-xs tracking-wider text-white truncate max-w-[120px]">
+            {profile?.nombre_negocio || 'TALLER SOS'}
+          </span>
         </div>
         <div className="flex items-center gap-3">
           <div className={`w-2 h-2 rounded-full ${realtimeStatus === 'connected' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500 animate-pulse'}`}></div>
@@ -471,7 +508,14 @@ export default function ProveedorDashboard() {
         </div>
 
         {/* Profile Card */}
-        <div className="bg-neutral-950 p-5 rounded-3xl border border-neutral-800 mb-6">
+        <div 
+          onClick={() => {
+            fetchHistorialCompletado();
+            setShowProfileModal(true);
+          }}
+          className="bg-neutral-950 p-5 rounded-3xl border border-neutral-800 hover:border-yellow-500/50 hover:bg-neutral-900/40 transition-all cursor-pointer mb-6 group"
+          title="Ver Perfil y Ganancias"
+        >
           <div className="flex items-center gap-4 mb-4">
             <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-2xl flex items-center justify-center border border-yellow-400 text-black shadow-lg shrink-0">
               <span className="text-xl font-black italic uppercase">{profile?.nombre_negocio?.substring(0, 2) || 'TS'}</span>
@@ -570,6 +614,131 @@ export default function ProveedorDashboard() {
               tipoUsuario="proveedor"
               onClose={() => setChatSolicitudId(null)} 
             />
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Perfil & Ganancias del Proveedor */}
+      {showProfileModal && (
+        <div className="fixed inset-0 z-[6000] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-in fade-in">
+          <div className="bg-neutral-950 border border-neutral-800 w-full max-w-lg h-[80vh] rounded-[35px] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95">
+            {/* Header */}
+            <div className="p-6 bg-neutral-900/90 border-b border-neutral-800 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-yellow-500 rounded-2xl flex items-center justify-center border border-yellow-400 text-black">
+                  <Star className="w-5 h-5 fill-black text-black" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black italic uppercase text-white tracking-wider">Perfil del Taller</h3>
+                  <p className="text-[9px] text-neutral-500 font-bold uppercase">Datos y Resumen Financiero</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowProfileModal(false)} 
+                className="p-2 text-neutral-400 hover:text-white bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+              
+              {/* Datos Personales */}
+              <div className="bg-neutral-900 p-5 rounded-3xl border border-neutral-800 space-y-3.5">
+                <h4 className="text-[10px] font-black text-yellow-500 uppercase tracking-widest italic flex items-center gap-2">
+                  <UserCheck className="w-3.5 h-3.5" /> Datos del Taller
+                </h4>
+                <div className="grid grid-cols-2 gap-4 text-left">
+                  <div>
+                    <span className="text-[8px] text-neutral-500 font-bold uppercase block">Negocio / Taller</span>
+                    <span className="text-xs font-extrabold text-white uppercase italic">{profile?.nombre_negocio || 'Taller SOS'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-neutral-500 font-bold uppercase block">Correo Electrónico</span>
+                    <span className="text-xs font-semibold text-neutral-300 break-all">{user?.email || 'proveedor@sos.com'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-neutral-500 font-bold uppercase block">Celular / Teléfono</span>
+                    <span className="text-xs font-extrabold text-white">{profile?.telefono || '999 999 999'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-neutral-500 font-bold uppercase block">Ubicación GPS</span>
+                    <span className="text-xs font-semibold text-neutral-300">Arequipa, Perú</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Caja de Ingresos Totales */}
+              <div className="bg-gradient-to-br from-green-950/30 to-neutral-950 p-6 rounded-3xl border-2 border-green-500/40 text-center shadow-lg shadow-green-500/5">
+                <div className="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center mx-auto shadow-md shadow-green-500/20 mb-3">
+                  <Wallet className="w-6 h-6 text-black" />
+                </div>
+                <p className="text-[9px] text-green-400 font-black uppercase tracking-wider">Ingresos Totales Acumulados</p>
+                <h3 className="text-3xl font-black italic text-white mt-1">
+                  S/ {historialCompletado.reduce((acc, s) => acc + parseFloat(s.monto_pactado || 0), 0).toFixed(2)}
+                </h3>
+                <p className="text-[8px] text-neutral-500 font-extrabold uppercase mt-1">
+                  Basado en {historialCompletado.length} servicios terminados con éxito
+                </p>
+              </div>
+
+              {/* Historial de Servicios Realizados */}
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest italic flex items-center gap-2">
+                  <FileText className="w-3.5 h-3.5" /> Historial de Servicios Realizados
+                </h4>
+
+                {historialCompletado.length === 0 ? (
+                  <div className="text-center py-8 bg-neutral-900/50 rounded-3xl border border-neutral-800/80 text-neutral-500">
+                    <Clock className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    <p className="text-[10px] font-black uppercase italic">Aún no registras servicios completados</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {historialCompletado.map((sol: any) => {
+                      const isCamion = sol.descripcion?.toUpperCase().includes('CAMION');
+                      const isMoto = sol.descripcion?.toUpperCase().includes('MOTO');
+                      const isMinivan = sol.descripcion?.toUpperCase().includes('MINIVAN');
+                      const vehiculoIcon = isCamion ? '🚛' : isMoto ? '🏍️' : isMinivan ? '🚐' : '🚗';
+                      
+                      return (
+                        <div key={sol.id} className="bg-neutral-900 p-4.5 rounded-2xl border border-neutral-800 flex flex-col gap-3 text-left">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[8px] font-black uppercase tracking-wider text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20 shrink-0">
+                              {vehiculoIcon} {isCamion ? 'CAMIÓN' : isMoto ? 'MOTO' : isMinivan ? 'MINIVAN' : 'AUTO / SUV'}
+                            </span>
+                            <span className="text-[9px] font-black uppercase tracking-wider text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded border border-green-500/20 shrink-0">
+                              S/ {parseFloat(sol.monto_pactado || 0).toFixed(2)}
+                            </span>
+                          </div>
+                          
+                          <div className="border-t border-neutral-800 pt-2.5 space-y-1.5">
+                            <div>
+                              <span className="text-[8px] text-neutral-500 font-bold uppercase block">Cliente Auxiliado</span>
+                              <span className="text-xs font-extrabold text-white uppercase italic">{sol.usuarios?.nombre || 'Cliente SOS'}</span>
+                            </div>
+                            
+                            <div>
+                              <span className="text-[8px] text-neutral-500 font-bold uppercase block">Problema / Falla</span>
+                              <span className="text-[11px] text-neutral-200 font-semibold italic bg-neutral-950 p-2 rounded-xl border border-neutral-850 block mt-0.5">
+                                "{sol.descripcion}"
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center gap-1 text-[8px] text-neutral-500 font-bold uppercase pt-1">
+                              <Calendar className="w-3 h-3" />
+                              {sol.created_at ? new Date(sol.created_at).toLocaleDateString() + ' - ' + new Date(sol.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Fecha desconocida'}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+            </div>
           </div>
         </div>
       )}
