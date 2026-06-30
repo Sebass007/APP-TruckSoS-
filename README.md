@@ -44,7 +44,7 @@ La aplicación integra de forma nativa el **Asistente IA TruckSOS**, una herrami
 ## 📹 Video de Demostración
 
 🎥 **Enlace al video explicativo en YouTube (3 - 5 minutos narrado):**  
-👉 [Ver Demostración Completa de TruckSOS en YouTube](https://www.youtube.com/watch?v=trucksos-demo-placeholder)
+👉 [Ver Demostración Completa de TruckSOS en YouTube](https://youtube.com/watch?v=pm66p32W5Pw&feature=youtu.be)
 
 ---
 

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Truck, User, Mail, Lock, ShieldCheck, Briefcase, Phone, CheckCircle2 } from 'lucide-react';
+import { Truck, User, Mail, Lock, ShieldCheck, Briefcase, Phone, CheckCircle2, MapPin } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const ESPECIALIDADES = [
@@ -28,6 +28,7 @@ export default function RegisterPage() {
     password: '',
     telefono: '',
     nombre_negocio: '',
+    direccion: '',
   });
 
   const [selectedSpecs, setSelectedSpecs] = useState<string[]>([]);
@@ -81,6 +82,7 @@ export default function RegisterPage() {
             user_id: authData.user.id,
             nombre_negocio: formData.nombre_negocio,
             especialidades: selectedSpecs,
+            direccion: formData.direccion,
           });
 
         if (provError) throw provError;
@@ -180,20 +182,37 @@ export default function RegisterPage() {
             </div>
 
             {role === 'proveedor' && (
-              <div className="md:col-span-2 animate-in fade-in slide-in-from-top-4 duration-300">
-                <label className="block text-xs font-black text-neutral-500 uppercase tracking-widest mb-3 italic">Nombre del Negocio / Taller</label>
-                <div className="relative">
-                  <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-600" />
-                  <input 
-                    type="text" 
-                    required
-                    value={formData.nombre_negocio}
-                    onChange={(e) => setFormData({...formData, nombre_negocio: e.target.value})}
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-orange-500 transition-all font-medium"
-                    placeholder="Llantería Express Arequipa"
-                  />
+              <>
+                <div className="md:col-span-2 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <label className="block text-xs font-black text-neutral-500 uppercase tracking-widest mb-3 italic">Nombre del Negocio / Taller</label>
+                  <div className="relative">
+                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-600" />
+                    <input 
+                      type="text" 
+                      required
+                      value={formData.nombre_negocio}
+                      onChange={(e) => setFormData({...formData, nombre_negocio: e.target.value})}
+                      className="w-full bg-neutral-950 border border-neutral-800 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-orange-500 transition-all font-medium"
+                      placeholder="Llantería Express Arequipa"
+                    />
+                  </div>
                 </div>
-              </div>
+
+                <div className="md:col-span-2 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <label className="block text-xs font-black text-neutral-500 uppercase tracking-widest mb-3 italic">Dirección del Taller</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-600" />
+                    <input 
+                      type="text" 
+                      required
+                      value={formData.direccion}
+                      onChange={(e) => setFormData({...formData, direccion: e.target.value})}
+                      className="w-full bg-neutral-950 border border-neutral-800 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-orange-500 transition-all font-medium"
+                      placeholder="Av. Ejército 123, Yanahuara"
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <div>
