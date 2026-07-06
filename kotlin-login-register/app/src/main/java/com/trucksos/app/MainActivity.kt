@@ -52,58 +52,51 @@ enum class Screen {
     LOGIN, REGISTER, HOME
 }
 
-// Icono personalizado de camión dibujado nativamente sobre un lienzo (Canvas)
+// Icono delineado de camión (Outlined Truck Icon) idéntico a la captura
 @Composable
 fun TruckIcon(modifier: Modifier = Modifier) {
     Canvas(modifier = modifier.size(36.dp, 24.dp)) {
         val orange = Color(0xFFF95A2C)
-        // Remolque (Cuerpo de carga)
+        val strokeWidth = 2.5.dp.toPx() // Grosor del delineado
+
+        // 1. Cuerpo de carga (Rectángulo redondeado delineado)
         drawRoundRect(
             color = orange,
-            topLeft = androidx.compose.ui.geometry.Offset(x = 0f, y = size.height * 0.15f),
-            size = androidx.compose.ui.geometry.Size(width = size.width * 0.58f, height = size.height * 0.55f),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4f, 4f)
+            topLeft = androidx.compose.ui.geometry.Offset(x = strokeWidth / 2, y = size.height * 0.18f),
+            size = androidx.compose.ui.geometry.Size(width = size.width * 0.48f, height = size.height * 0.5f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx(), 3.dp.toPx()),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
         )
-        // Cabina
-        drawRoundRect(
+
+        // 2. Cabina delineada (Curva diagonal del parabrisas)
+        val path = androidx.compose.ui.graphics.Path().apply {
+            moveTo(size.width * 0.48f, size.height * 0.32f)
+            lineTo(size.width * 0.68f, size.height * 0.32f)
+            // Esquina redondeada del parabrisas
+            lineTo(size.width * 0.88f, size.height * 0.52f)
+            lineTo(size.width * 0.88f, size.height * 0.68f)
+            lineTo(size.width * 0.48f, size.height * 0.68f)
+        }
+        drawPath(
+            path = path,
             color = orange,
-            topLeft = androidx.compose.ui.geometry.Offset(x = size.width * 0.62f, y = size.height * 0.28f),
-            size = androidx.compose.ui.geometry.Size(width = size.width * 0.38f, height = size.height * 0.42f),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f)
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
         )
-        // Parabrisas de la cabina
-        drawRect(
-            color = Color(0xFF0D0D0D),
-            topLeft = androidx.compose.ui.geometry.Offset(x = size.width * 0.78f, y = size.height * 0.35f),
-            size = androidx.compose.ui.geometry.Size(width = size.width * 0.16f, height = size.height * 0.18f)
-        )
-        // Chasis inferior
-        drawRect(
-            color = orange,
-            topLeft = androidx.compose.ui.geometry.Offset(x = size.width * 0.1f, y = size.height * 0.68f),
-            size = androidx.compose.ui.geometry.Size(width = size.width * 0.8f, height = size.height * 0.08f)
-        )
-        // Rueda izquierda (Eje de carga)
-        drawCircle(
-            color = Color(0xFF0D0D0D),
-            radius = size.height * 0.16f,
-            center = androidx.compose.ui.geometry.Offset(x = size.width * 0.25f, y = size.height * 0.78f)
-        )
+
+        // 3. Rueda izquierda (Círculo delineado vacío)
         drawCircle(
             color = orange,
-            radius = size.height * 0.08f,
-            center = androidx.compose.ui.geometry.Offset(x = size.width * 0.25f, y = size.height * 0.78f)
+            radius = 3.dp.toPx(),
+            center = androidx.compose.ui.geometry.Offset(x = size.width * 0.22f, y = size.height * 0.74f),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
         )
-        // Rueda derecha (Eje de dirección)
-        drawCircle(
-            color = Color(0xFF0D0D0D),
-            radius = size.height * 0.16f,
-            center = androidx.compose.ui.geometry.Offset(x = size.width * 0.72f, y = size.height * 0.78f)
-        )
+
+        // 4. Rueda derecha (Círculo delineado vacío)
         drawCircle(
             color = orange,
-            radius = size.height * 0.08f,
-            center = androidx.compose.ui.geometry.Offset(x = size.width * 0.72f, y = size.height * 0.78f)
+            radius = 3.dp.toPx(),
+            center = androidx.compose.ui.geometry.Offset(x = size.width * 0.68f, y = size.height * 0.74f),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
         )
     }
 }
@@ -180,7 +173,7 @@ fun LoginScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // LOGO TRUCKSOS CON EL CAMIONCITO NARANJA
+        // LOGO TRUCKSOS (Con camioncito delineado y texto normal recto de la captura)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
@@ -192,14 +185,14 @@ fun LoginScreen(
                 color = Color.White,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Black,
-                fontStyle = FontStyle.Italic
+                fontStyle = FontStyle.Normal // Recto
             )
             Text(
                 text = "SOS",
                 color = Color(0xFFF95A2C),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Black,
-                fontStyle = FontStyle.Italic
+                fontStyle = FontStyle.Normal // Recto
             )
         }
 
@@ -429,7 +422,7 @@ fun RegisterScreen(
                 color = Color.White,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Black,
-                fontStyle = FontStyle.Italic
+                fontStyle = FontStyle.Normal
             )
         }
 
