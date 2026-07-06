@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -36,7 +38,7 @@ class MainActivity : ComponentActivity() {
             TruckSOSTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = Color(0xFF0D0D0D) // Fondo negro puro de la captura
                 ) {
                     AppNavigation()
                 }
@@ -45,7 +47,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Pantallas disponibles
 enum class Screen {
     LOGIN, REGISTER, HOME
 }
@@ -115,147 +116,229 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF1E1E1E), Color(0xFF121212))
-                )
-            )
+            .background(Color(0xFF0D0D0D)) // Fondo negro oscuro
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Logo / Icono
-        Icon(
-            imageVector = Icons.Default.Build,
-            contentDescription = "Logo",
-            tint = Color(0xFFF59E0B), // Amarillo camión
-            modifier = Modifier.size(72.dp)
-        )
-        
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "TRUCK-SOS",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Black,
-            color = Color.White,
-            letterSpacing = 2.sp
-        )
-        Text(
-            text = "Iniciar Sesión Nativo Kotlin",
-            fontSize = 12.sp,
-            color = Color.Gray,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Campo de Email
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it; errorMessage = "" },
-            label = { Text("Correo Electrónico") },
-            leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFF59E0B),
-                focusedLabelColor = Color(0xFFF59E0B),
-                unfocusedBorderColor = Color.DarkGray
+        // LOGO TRUCKSOS (Alineado con el diseño)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.PlayArrow, // Simulación de icono del camión / flecha
+                contentDescription = "Logo Truck",
+                tint = Color(0xFFF95A2C), // Color Naranja TruckSOS
+                modifier = Modifier.size(32.dp)
             )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Campo de Contraseña
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it; errorMessage = "" },
-            label = { Text("Contraseña") },
-            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Lock") },
-            trailingIcon = {
-                val image = if (passwordVisible) Icons.Default.Info else Icons.Default.Lock
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(image, contentDescription = "Toggle password")
-                }
-            },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFF59E0B),
-                focusedLabelColor = Color(0xFFF59E0B),
-                unfocusedBorderColor = Color.DarkGray
-            )
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Mensaje de Error
-        if (errorMessage.isNotEmpty()) {
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = errorMessage,
-                color = Color.Red,
-                fontSize = 12.sp,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start
+                text = "TRUCK",
+                color = Color.White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Black,
+                fontStyle = FontStyle.Italic
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "SOS",
+                color = Color(0xFFF95A2C),
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Black,
+                fontStyle = FontStyle.Italic
+            )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Botón de Login
-        Button(
-            onClick = {
-                if (email.isEmpty() || password.isEmpty()) {
-                    errorMessage = "Por favor, completa todos los campos."
-                } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    errorMessage = "Formato de correo electrónico inválido."
-                } else {
-                    isLoading = true
-                    coroutineScope.launch {
-                        delay(2000) // Simular delay de red
-                        isLoading = false
-                        onLoginSuccess(email)
-                    }
-                }
-            },
-            enabled = !isLoading,
+        // CONTENEDOR TIPO CARD (Igual al screenshot)
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFF59E0B),
-                contentColor = Color.Black
-            )
+                .padding(vertical = 16.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)), // Fondo de tarjeta oscuro
+            border = BorderStroke(1.dp, Color(0xFF2C2C2E)) // Borde sutil
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    color = Color.Black,
-                    modifier = Modifier.size(24.dp)
-                )
-            } else {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
-                    text = "ENTRAR A LA RED",
+                    text = "BIENVENIDO DE VUELTA",
+                    color = Color.White,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Black,
-                    fontSize = 14.sp
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start
                 )
+                Text(
+                    text = "INGRESA TUS CREDENCIALES PARA CONTINUAR",
+                    color = Color(0xFF8E8E93),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 24.dp),
+                    textAlign = TextAlign.Start
+                )
+
+                // Input Email
+                Text(
+                    text = "EMAIL CORPORATIVO O PERSONAL",
+                    color = Color(0xFF8E8E93),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 6.dp),
+                    textAlign = TextAlign.Start
+                )
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it; errorMessage = "" },
+                    placeholder = { Text("ejemplo@trucksos.com", color = Color(0xFF48484A)) },
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email", tint = Color(0xFF8E8E93)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF0F0F10),
+                        unfocusedContainerColor = Color(0xFF0F0F10),
+                        focusedBorderColor = Color(0xFFF95A2C),
+                        unfocusedBorderColor = Color(0xFF2C2C2E),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Input Contraseña
+                Text(
+                    text = "CONTRASEÑA SEGURA",
+                    color = Color(0xFF8E8E93),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 6.dp),
+                    textAlign = TextAlign.Start
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it; errorMessage = "" },
+                    placeholder = { Text("••••••••", color = Color(0xFF48484A)) },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Lock", tint = Color(0xFF8E8E93)) },
+                    trailingIcon = {
+                        val image = if (passwordVisible) Icons.Default.Info else Icons.Default.Lock
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(image, contentDescription = "Toggle password", tint = Color(0xFF8E8E93))
+                        }
+                    },
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF0F0F10),
+                        unfocusedContainerColor = Color(0xFF0F0F10),
+                        focusedBorderColor = Color(0xFFF95A2C),
+                        unfocusedBorderColor = Color(0xFF2C2C2E),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    )
+                )
+
+                // Error Message
+                if (errorMessage.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = errorMessage,
+                        color = Color.Red,
+                        fontSize = 11.sp,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Start
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Botón Iniciar Sesión (Naranja con flecha)
+                Button(
+                    onClick = {
+                        if (email.isEmpty() || password.isEmpty()) {
+                            errorMessage = "Por favor, completa todos los campos."
+                        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                            errorMessage = "Formato de correo electrónico inválido."
+                        } else {
+                            isLoading = true
+                            coroutineScope.launch {
+                                delay(2000)
+                                isLoading = false
+                                onLoginSuccess(email)
+                            }
+                        }
+                    },
+                    enabled = !isLoading,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF95A2C),
+                        contentColor = Color.White
+                    )
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "INICIAR SESIÓN",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(Icons.Default.ArrowForward, contentDescription = "Next")
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Link Registro
+                Text(
+                    text = "¿NO TIENES UNA CUENTA?",
+                    color = Color(0xFF8E8E93),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                TextButton(onClick = onNavigateToRegister) {
+                    Text(
+                        text = "REGÍSTRATE GRATIS AQUÍ",
+                        color = Color(0xFFF95A2C),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Black,
+                        fontStyle = FontStyle.Italic
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Navegación a Registro
-        TextButton(onClick = onNavigateToRegister) {
-            Text(
-                text = "¿No tienes cuenta? Registrate aquí",
-                color = Color(0xFFF59E0B),
-                fontSize = 12.sp
-            )
-        }
+        // FOOTER (Igual al screenshot)
+        Text(
+            text = "TRUCKSOS PERÚ © 2026",
+            color = Color(0xFF48484A),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
     }
 }
 
@@ -277,159 +360,241 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF1E1E1E), Color(0xFF121212))
-                )
-            )
+            .background(Color(0xFF0D0D0D))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Icon(
-            imageVector = Icons.Default.Add,
-            contentDescription = "Register",
-            tint = Color(0xFFF59E0B),
-            modifier = Modifier.size(72.dp)
-        )
-
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "CREAR CUENTA",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Black,
-            color = Color.White,
-            letterSpacing = 2.sp
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Campo de Nombre
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it; errorMessage = "" },
-            label = { Text("Nombre Completo") },
-            leadingIcon = { Icon(Icons.Default.Person, contentDescription = "Name") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFF59E0B),
-                focusedLabelColor = Color(0xFFF59E0B),
-                unfocusedBorderColor = Color.DarkGray
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = "Logo",
+                tint = Color(0xFFF95A2C),
+                modifier = Modifier.size(32.dp)
             )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Campo de Email
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it; errorMessage = "" },
-            label = { Text("Correo Electrónico") },
-            leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFF59E0B),
-                focusedLabelColor = Color(0xFFF59E0B),
-                unfocusedBorderColor = Color.DarkGray
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Campo de Contraseña
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it; errorMessage = "" },
-            label = { Text("Contraseña (Min. 6 caracteres)") },
-            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Lock") },
-            trailingIcon = {
-                val image = if (passwordVisible) Icons.Default.Info else Icons.Default.Lock
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(image, contentDescription = "Toggle password")
-                }
-            },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFF59E0B),
-                focusedLabelColor = Color(0xFFF59E0B),
-                unfocusedBorderColor = Color.DarkGray
-            )
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Mensaje de Error
-        if (errorMessage.isNotEmpty()) {
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = errorMessage,
-                color = Color.Red,
-                fontSize = 12.sp,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start
+                text = "REGISTRO",
+                color = Color.White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Black,
+                fontStyle = FontStyle.Italic
             )
-            Spacer(modifier = Modifier.height(8.dp))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Botón de Registro
-        Button(
-            onClick = {
-                if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                    errorMessage = "Por favor, completa todos los campos."
-                } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    errorMessage = "Formato de correo electrónico inválido."
-                } else if (password.length < 6) {
-                    errorMessage = "La contraseña debe tener al menos 6 caracteres."
-                } else {
-                    isLoading = true
-                    coroutineScope.launch {
-                        delay(2000) // Simular delay
-                        isLoading = false
-                        onRegisterSuccess(email)
-                    }
-                }
-            },
-            enabled = !isLoading,
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFF59E0B),
-                contentColor = Color.Black
-            )
+                .padding(vertical = 16.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
+            border = BorderStroke(1.dp, Color(0xFF2C2C2E))
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    color = Color.Black,
-                    modifier = Modifier.size(24.dp)
-                )
-            } else {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
-                    text = "REGISTRARSE AHORA",
+                    text = "CREAR UNA CUENTA",
+                    color = Color.White,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Black,
-                    fontSize = 14.sp
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start
                 )
+                Text(
+                    text = "ÚNETE A LA RED DE AUXILIO MECÁNICO",
+                    color = Color(0xFF8E8E93),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 24.dp),
+                    textAlign = TextAlign.Start
+                )
+
+                // Input Nombre
+                Text(
+                    text = "NOMBRE COMPLETO",
+                    color = Color(0xFF8E8E93),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 6.dp),
+                    textAlign = TextAlign.Start
+                )
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it; errorMessage = "" },
+                    placeholder = { Text("Juan Pérez", color = Color(0xFF48484A)) },
+                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = "Name", tint = Color(0xFF8E8E93)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF0F0F10),
+                        unfocusedContainerColor = Color(0xFF0F0F10),
+                        focusedBorderColor = Color(0xFFF95A2C),
+                        unfocusedBorderColor = Color(0xFF2C2C2E),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Input Email
+                Text(
+                    text = "EMAIL DE CONTACTO",
+                    color = Color(0xFF8E8E93),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 6.dp),
+                    textAlign = TextAlign.Start
+                )
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it; errorMessage = "" },
+                    placeholder = { Text("ejemplo@gmail.com", color = Color(0xFF48484A)) },
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email", tint = Color(0xFF8E8E93)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF0F0F10),
+                        unfocusedContainerColor = Color(0xFF0F0F10),
+                        focusedBorderColor = Color(0xFFF95A2C),
+                        unfocusedBorderColor = Color(0xFF2C2C2E),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Input Password
+                Text(
+                    text = "CONTRASEÑA SEGURA",
+                    color = Color(0xFF8E8E93),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 6.dp),
+                    textAlign = TextAlign.Start
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it; errorMessage = "" },
+                    placeholder = { Text("Mínimo 6 caracteres", color = Color(0xFF48484A)) },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Lock", tint = Color(0xFF8E8E93)) },
+                    trailingIcon = {
+                        val image = if (passwordVisible) Icons.Default.Info else Icons.Default.Lock
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(image, contentDescription = "Toggle password", tint = Color(0xFF8E8E93))
+                        }
+                    },
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF0F0F10),
+                        unfocusedContainerColor = Color(0xFF0F0F10),
+                        focusedBorderColor = Color(0xFFF95A2C),
+                        unfocusedBorderColor = Color(0xFF2C2C2E),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    )
+                )
+
+                if (errorMessage.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = errorMessage,
+                        color = Color.Red,
+                        fontSize = 11.sp,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Start
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = {
+                        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                            errorMessage = "Por favor, completa todos los campos."
+                        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                            errorMessage = "Formato de correo electrónico inválido."
+                        } else if (password.length < 6) {
+                            errorMessage = "La contraseña debe tener al menos 6 caracteres."
+                        } else {
+                            isLoading = true
+                            coroutineScope.launch {
+                                delay(2000)
+                                isLoading = false
+                                onRegisterSuccess(email)
+                            }
+                        }
+                    },
+                    enabled = !isLoading,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF95A2C),
+                        contentColor = Color.White
+                    )
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "REGISTRARSE AHORA",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(Icons.Default.ArrowForward, contentDescription = "Register")
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                TextButton(onClick = onNavigateToLogin) {
+                    Text(
+                        text = "¿Ya tienes cuenta? Inicia sesión",
+                        color = Color(0xFFF95A2C),
+                        fontSize = 11.sp
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Regresar a Login
-        TextButton(onClick = onNavigateToLogin) {
-            Text(
-                text = "¿Ya tienes cuenta? Inicia sesión",
-                color = Color(0xFFF59E0B),
-                fontSize = 12.sp
-            )
-        }
+        Text(
+            text = "TRUCKSOS PERÚ © 2026",
+            color = Color(0xFF48484A),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
     }
 }
 
@@ -441,7 +606,7 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF121212))
+            .background(Color(0xFF0D0D0D))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -449,7 +614,7 @@ fun HomeScreen(
         Icon(
             imageVector = Icons.Default.CheckCircle,
             contentDescription = "Success",
-            tint = Color(0xFF10B981), // Verde
+            tint = Color(0xFF10B981),
             modifier = Modifier.size(96.dp)
         )
 
@@ -459,6 +624,7 @@ fun HomeScreen(
             text = "¡INGRESO EXITOSO!",
             fontSize = 24.sp,
             fontWeight = FontWeight.Black,
+            fontStyle = FontStyle.Italic,
             color = Color.White
         )
 
@@ -467,14 +633,16 @@ fun HomeScreen(
         Text(
             text = "Bienvenido a la red TruckSOS:",
             fontSize = 14.sp,
-            color = Color.Gray
+            color = Color(0xFF8E8E93)
         )
 
         Text(
             text = email,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFFF59E0B)
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Black,
+            fontStyle = FontStyle.Italic,
+            color = Color(0xFFF95A2C),
+            modifier = Modifier.padding(top = 4.dp)
         )
 
         Spacer(modifier = Modifier.height(48.dp))
@@ -483,15 +651,15 @@ fun HomeScreen(
             onClick = onLogout,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(12.dp),
+                .height(52.dp),
+            shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Red,
+                containerColor = Color(0xFFE03A3E),
                 contentColor = Color.White
             )
         ) {
             Text(
-                text = "CERRAR SESIÓN",
+                text = "CERRAR SESIÓN NATIVO",
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
             )
@@ -499,13 +667,12 @@ fun HomeScreen(
     }
 }
 
-// Tema personalizado del aplicativo
 @Composable
 fun TruckSOSTheme(content: @Composable () -> Unit) {
     val darkColors = darkColorScheme(
-        primary = Color(0xFFF59E0B),
-        background = Color(0xFF121212),
-        surface = Color(0xFF1E1E1E)
+        primary = Color(0xFFF95A2C),
+        background = Color(0xFF0D0D0D),
+        surface = Color(0xFF161618)
     )
     MaterialTheme(
         colorScheme = darkColors,
