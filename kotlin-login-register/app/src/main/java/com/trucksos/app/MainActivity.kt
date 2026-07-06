@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,7 +39,7 @@ class MainActivity : ComponentActivity() {
             TruckSOSTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color(0xFF0D0D0D) // Fondo negro puro de la captura
+                    color = Color(0xFF0D0D0D)
                 ) {
                     AppNavigation()
                 }
@@ -49,6 +50,62 @@ class MainActivity : ComponentActivity() {
 
 enum class Screen {
     LOGIN, REGISTER, HOME
+}
+
+// Icono personalizado de camión dibujado nativamente sobre un lienzo (Canvas)
+@Composable
+fun TruckIcon(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(36.dp, 24.dp)) {
+        val orange = Color(0xFFF95A2C)
+        // Remolque (Cuerpo de carga)
+        drawRoundRect(
+            color = orange,
+            topLeft = androidx.compose.ui.geometry.Offset(x = 0f, y = size.height * 0.15f),
+            size = androidx.compose.ui.geometry.Size(width = size.width * 0.58f, height = size.height * 0.55f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4f, 4f)
+        )
+        // Cabina
+        drawRoundRect(
+            color = orange,
+            topLeft = androidx.compose.ui.geometry.Offset(x = size.width * 0.62f, y = size.height * 0.28f),
+            size = androidx.compose.ui.geometry.Size(width = size.width * 0.38f, height = size.height * 0.42f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f)
+        )
+        // Parabrisas de la cabina
+        drawRect(
+            color = Color(0xFF0D0D0D),
+            topLeft = androidx.compose.ui.geometry.Offset(x = size.width * 0.78f, y = size.height * 0.35f),
+            size = androidx.compose.ui.geometry.Size(width = size.width * 0.16f, height = size.height * 0.18f)
+        )
+        // Chasis inferior
+        drawRect(
+            color = orange,
+            topLeft = androidx.compose.ui.geometry.Offset(x = size.width * 0.1f, y = size.height * 0.68f),
+            size = androidx.compose.ui.geometry.Size(width = size.width * 0.8f, height = size.height * 0.08f)
+        )
+        // Rueda izquierda (Eje de carga)
+        drawCircle(
+            color = Color(0xFF0D0D0D),
+            radius = size.height * 0.16f,
+            center = androidx.compose.ui.geometry.Offset(x = size.width * 0.25f, y = size.height * 0.78f)
+        )
+        drawCircle(
+            color = orange,
+            radius = size.height * 0.08f,
+            center = androidx.compose.ui.geometry.Offset(x = size.width * 0.25f, y = size.height * 0.78f)
+        )
+        // Rueda derecha (Eje de dirección)
+        drawCircle(
+            color = Color(0xFF0D0D0D),
+            radius = size.height * 0.16f,
+            center = androidx.compose.ui.geometry.Offset(x = size.width * 0.72f, y = size.height * 0.78f)
+        )
+        drawCircle(
+            color = orange,
+            radius = size.height * 0.08f,
+            center = androidx.compose.ui.geometry.Offset(x = size.width * 0.72f, y = size.height * 0.78f)
+        )
+    }
 }
 
 @Composable
@@ -116,25 +173,20 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0D0D0D)) // Fondo negro oscuro
+            .background(Color(0xFF0D0D0D))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // LOGO TRUCKSOS (Alineado con el diseño)
+        // LOGO TRUCKSOS CON EL CAMIONCITO NARANJA
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow, // Simulación de icono del camión / flecha
-                contentDescription = "Logo Truck",
-                tint = Color(0xFFF95A2C), // Color Naranja TruckSOS
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
+            TruckIcon(modifier = Modifier.size(36.dp, 24.dp))
+            Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = "TRUCK",
                 color = Color.White,
@@ -151,14 +203,14 @@ fun LoginScreen(
             )
         }
 
-        // CONTENEDOR TIPO CARD (Igual al screenshot)
+        // CONTENEDOR TIPO CARD
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)), // Fondo de tarjeta oscuro
-            border = BorderStroke(1.dp, Color(0xFF2C2C2E)) // Borde sutil
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
+            border = BorderStroke(1.dp, Color(0xFF2C2C2E))
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
@@ -252,7 +304,6 @@ fun LoginScreen(
                     )
                 )
 
-                // Error Message
                 if (errorMessage.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -266,7 +317,7 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Botón Iniciar Sesión (Naranja con flecha)
+                // Botón Iniciar Sesión
                 Button(
                     onClick = {
                         if (email.isEmpty() || password.isEmpty()) {
@@ -331,7 +382,7 @@ fun LoginScreen(
             }
         }
 
-        // FOOTER (Igual al screenshot)
+        // FOOTER
         Text(
             text = "TRUCKSOS PERÚ © 2026",
             color = Color(0xFF48484A),
@@ -371,13 +422,8 @@ fun RegisterScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = "Logo",
-                tint = Color(0xFFF95A2C),
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
+            TruckIcon(modifier = Modifier.size(36.dp, 24.dp))
+            Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = "REGISTRO",
                 color = Color.White,
