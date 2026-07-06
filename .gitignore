@@ -52,3 +52,10 @@ android/.idea/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Kotlin recovery project build files
+kotlin-login-register/local.properties
+kotlin-login-register/.gradle/
+kotlin-login-register/build/
+kotlin-login-register/app/build/
+kotlin-login-register/.idea/
